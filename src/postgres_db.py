@@ -36,3 +36,34 @@ class PostgresDB:
         finally:
             if conn is not None:
                 conn.close()
+
+    def create_table_vacancy(self, table_name, table_employers) -> None:
+        """
+        Создает таблицу для хранения информации о вакансиях.
+        :param table_name: название таблицы
+        :param table_employers: название таблицы с данными о работодателе
+        :return: None
+        """
+        try:
+            with psycopg2.connect(**self.params) as conn:
+                with conn.cursor() as cur:
+                    cur.execute(f"""CREATE TABLE IF NOT EXISTS {table_name} (
+                        vacancy_id SERIAL PRIMARY KEY,
+                        employer_id INTEGER,
+                        name VARCHAR(255) NOT NULL,
+                        salary_from INTEGER,
+                        salary_to INTEGER,
+                        salary_currency VARCHAR(30) NOT NULL,
+                        city VARCHAR(100) NOT NULL,
+                        description TEXT NOT NULL,
+                        url TEXT NOT NULL,
+                        FOREIGN KEY (employer_id) REFERENCES {table_employers}(employer_id)
+                        )
+                        """)
+
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+
+        finally:
+            if conn is not None:
+                conn.close()
