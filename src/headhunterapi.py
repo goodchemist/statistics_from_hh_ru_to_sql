@@ -35,56 +35,58 @@ class HeadHunterAPI:
         """Получает информацию о вакансиях работодателя."""
 
         url = f'https://api.hh.ru/vacancies?employer_id={self.employer_id}'
+        params = {'per_page': 100}
 
         try:
-            response = requests.get(url, params={})
+            page = 0
+            while True:
+                params['page'] = page
+                response = requests.get(url, params=params)
 
-            response.raise_for_status()  # Вызов исключения для кодов статуса 4xx/5xx
+                response.raise_for_status()  # Вызов исключения для кодов статуса 4xx/5xx
 
-            data_json = response.json()
+                data_json = response.json()
 
-            for vacancy_data in data_json['items']:
-                name = vacancy_data['name']
+                if not data_json['items']:
+                    break
 
-                try:
-                    salary_from = vacancy_data['salary']['from']
-                except TypeError:
-                    salary_from = '--'
+                for vacancy_data in data_json['items']:
+                    name = vacancy_data['name']
 
-                if salary_from is None:
-                    salary_from = '--'
+                    try:
+                        salary_from = vacancy_data['salary']['from']
+                    except TypeError:
+                        salary_from = None
 
-                try:
-                    salary_to = vacancy_data['salary']['to']
-                except TypeError:
-                    salary_to = None
+                    try:
+                        salary_to = vacancy_data['salary']['to']
+                    except TypeError:
+                        salary_to = None
 
-                if salary_to is None:
-                    salary_to = '--'
+                    try:
+                        salary_currency = vacancy_data['salary']['currency']
+                    except TypeError:
+                        salary_currency = 'Валюта не указана'
 
-                try:
-                    salary_currency = vacancy_data['salary']['currency']
-                except TypeError:
-                    salary_currency = 'Валюта не указана'
+                    if salary_currency is None:
+                        salary_currency = 'Валюта не указана'
 
-                if salary_currency is None:
-                    salary_currency = 'Валюта не указана'
+                    city = vacancy_data['area']['name']
+                    description = vacancy_data['snippet']['responsibility']
+                    url_vacancy = vacancy_data['alternate_url']
 
-                city = vacancy_data['area']['name']
-                description = vacancy_data['snippet']['responsibility']
-                url_vacancy = vacancy_data['alternate_url']
+                    vacancy = {
+                        'name': name,
+                        'salary_from': salary_from,
+                        'salary_to': salary_to,
+                        'salary_currency': salary_currency,
+                        'city': city,
+                        'description': description,
+                        'url_vacancy': url_vacancy
+                    }
 
-                vacancy = {
-                    'name': name,
-                    'salary_from': salary_from,
-                    'salary_to': salary_to,
-                    'salary_currency': salary_currency,
-                    'city': city,
-                    'description': description,
-                    'url_vacancy': url_vacancy
-                }
-
-                self.vacancies.append(vacancy)
+                    self.vacancies.append(vacancy)
+                page += 1
 
         except requests.exceptions.RequestException as e:
             raise Exception(f'Ошибка при выполнении запроса: {e}.')
