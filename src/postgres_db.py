@@ -37,7 +37,7 @@ class PostgresDB:
             if conn is not None:
                 conn.close()
 
-    def create_table_vacancy(self, table_name, table_employers) -> None:
+    def create_table_vacancy(self, table_name: str, table_employers: str) -> None:
         """
         Создает таблицу для хранения информации о вакансиях.
         :param table_name: название таблицы
@@ -54,9 +54,9 @@ class PostgresDB:
                         salary_from INTEGER,
                         salary_to INTEGER,
                         salary_currency VARCHAR(30) NOT NULL,
-                        city VARCHAR(100) NOT NULL,
-                        description TEXT NOT NULL,
-                        url TEXT NOT NULL,
+                        city VARCHAR(100),
+                        description TEXT,
+                        url TEXT,
                         FOREIGN KEY (employer_id) REFERENCES {table_employers}(employer_id)
                         )
                         """)
@@ -68,11 +68,13 @@ class PostgresDB:
             if conn is not None:
                 conn.close()
 
-    def insert_to_table_employer(self, table_name: str, data: dict) -> None:
+    def insert_to_table(self, tb_employer: str, tb_vacancies: str, employer: dict, vacancies: list[dict]) -> None:
         """
         Добавляет данные о работодателе в таблицу.
-        :param table_name: название таблицы
-        :param data: словарь с данными о работодателе
+        :param tb_employer: название таблицы с данными о работодателе
+        :param tb_vacancies: название таблицы с данными о вакансиях
+        :param employer: словарь с данными о работодателе
+        :param vacancies: список с данными о вакансиях
         :return: None
         """
         try:
@@ -80,11 +82,26 @@ class PostgresDB:
                 with conn.cursor() as cur:
                     cur.execute(
                         f"""
-                            INSERT INTO {table_name} (company_name, url, vacancies)
+                            INSERT INTO {tb_employer} (company_name, url, vacancies)
                             VALUES (%s, %s, %s)
+                            RETURNING employer_id
                             """,
-                        (data['company_name'], data['url'], data['vacancies'])
+                        (employer['company_name'], employer['url'], employer['vacancies'])
                     )
+
+                    employer_id = cur.fetchone()[0]
+                    print(employer_id)
+                    for vacancy in vacancies:
+                        cur.execute(
+                            f"""
+                                    INSERT INTO {tb_vacancies} (employer_id, name, salary_from, salary_to, 
+                                    salary_currency, city, description, url)
+                                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                                """,
+                            (employer_id, vacancy['name'], vacancy['salary_from'], vacancy['salary_to'],
+                             vacancy['salary_currency'], vacancy['city'], vacancy['description'],
+                             vacancy['url_vacancy'])
+                        )
 
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
