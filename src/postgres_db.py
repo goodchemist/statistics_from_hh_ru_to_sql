@@ -67,3 +67,28 @@ class PostgresDB:
         finally:
             if conn is not None:
                 conn.close()
+
+    def insert_to_table_employer(self, table_name: str, data: dict) -> None:
+        """
+        Добавляет данные о работодателе в таблицу.
+        :param table_name: название таблицы
+        :param data: словарь с данными о работодателе
+        :return: None
+        """
+        try:
+            with psycopg2.connect(**self.params) as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        f"""
+                            INSERT INTO {table_name} (company_name, url, vacancies)
+                            VALUES (%s, %s, %s)
+                            """,
+                        (data['company_name'], data['url'], data['vacancies'])
+                    )
+
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+
+        finally:
+            if conn is not None:
+                conn.close()
