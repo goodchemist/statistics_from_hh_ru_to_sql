@@ -16,7 +16,7 @@ class DBManager:
         self.params = params
         self.params.update({'dbname': self.db_name})
 
-    def get_employers_info(self) -> list:
+    def get_companies_and_vacancies_count(self) -> list:
         """
         Получает список всех компаний и количество вакансий у каждой компании.
         :return: list
