@@ -3,6 +3,7 @@ import psycopg2
 
 class DBManager:
     """Класс для получения данных из БД в Postgres"""
+
     def __init__(self, db_name: str, tb_employers: str, tb_vacancies: str, params) -> None:
         """
         Создание экземпляра класса DBManager.
@@ -67,3 +68,59 @@ class DBManager:
         finally:
             if conn is not None:
                 conn.close()
+
+    def get_avg_salary(self, salary_currency: str) -> float:
+        """Получает среднюю зарплату по вакансиям в зависимости от выбранной валюты зарплаты.
+        :param salary_currency: валюта зарплаты
+        :return: число
+        """
+        try:
+            with psycopg2.connect(**self.params) as conn:
+                with conn.cursor() as cur:
+
+                    data = []
+                    cur.execute(f"""SELECT salary_to, salary_from, salary_currency
+                    FROM {self.tb_vacancies}
+                    WHERE salary_currency =  '{salary_currency}'
+                    """)
+
+                    for company in cur:
+                        data.append(company)
+
+                    average_salary = []
+                    for item in data:
+                        average = self.calculate_avg_salary(item[0], item[1])
+                        if average != 0:
+                            average_salary.append(average)
+
+                    result = round(sum(average_salary) / len(average_salary), 2)
+
+                    return result
+
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+
+        finally:
+            if conn is not None:
+                conn.close()
+
+    @staticmethod
+    def calculate_avg_salary(salary_to, salary_from) -> int | float:
+        """
+        Метод для расчета среднего значения зарплаты из диапазона 'от'-'до', если они указаны.
+        :param salary_to: зарплата 'от'
+        :param salary_from: зарплата 'до'
+        :return: среднее значение диапазона зарплаты или 0, если диапазоны не указаны
+        """
+        if salary_to is None:
+            if salary_from is None:
+                return 0
+            elif isinstance(salary_from, (int, float)):
+                return salary_from
+
+        elif salary_from is None:
+            if isinstance(salary_to, (int, float)):
+                return salary_to
+
+        else:
+            return (salary_to + salary_from) / 2
