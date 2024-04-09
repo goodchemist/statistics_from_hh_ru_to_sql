@@ -124,3 +124,34 @@ class DBManager:
 
         else:
             return (salary_to + salary_from) / 2
+
+    def get_vacancies_with_keyword(self, keyword: str) -> list:
+        """Получает список всех вакансий, в названии которых содержатся переданные в метод keyword.
+        :param keyword: ключевое слово/слова для поиска
+        :return: список вакансий
+        """
+        keyword = keyword.lower()
+
+        try:
+            with psycopg2.connect(**self.params) as conn:
+                with conn.cursor() as cur:
+                    data = []
+                    cur.execute(f"""SELECT name, {self.tb_vacancies}.url, {self.tb_employers}.company_name
+                    FROM {self.tb_vacancies}
+                    JOIN {self.tb_employers} USING(employer_id)
+                    WHERE LOWER(name) LIKE '%{keyword}' 
+                    OR LOWER(name) LIKE '%{keyword}%' 
+                    OR LOWER(name) LIKE '{keyword}%'
+                    """)
+
+                    for vacancy in cur:
+                        data.append(vacancy)
+
+                    return data
+
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+
+        finally:
+            if conn is not None:
+                conn.close()
