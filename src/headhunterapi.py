@@ -90,3 +90,10 @@ class HeadHunterAPI:
 
         except requests.exceptions.RequestException as e:
             raise Exception(f'Ошибка при выполнении запроса: {e}.')
+
+    def __repr__(self):
+        """Метод для отображения экземпляра класса HeadHunterAPI.
+        :return: f-строка с данными.
+        """
+        result = f'employer_id={self.employer_id}, employer_info={self.employer_info}, vacancies={self.vacancies}'
+        return f"HeadHunterAPI({result})"
