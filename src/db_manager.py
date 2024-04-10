@@ -29,10 +29,7 @@ class DBManager:
                     cur.execute(f"""SELECT company_name, vacancies 
                     FROM {self.tb_employers}""")
 
-                    for company in cur:
-                        data.append(company)
-
-                    return data
+                    return cur.fetchall()
 
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
@@ -49,7 +46,7 @@ class DBManager:
         try:
             with psycopg2.connect(**self._params) as conn:
                 with conn.cursor() as cur:
-                    data = []
+
                     cur.execute(f"""SELECT name, {self.tb_vacancies}.url, {self.tb_employers}.company_name,
                     salary_to, salary_from, salary_currency
                     FROM {self.tb_vacancies}
@@ -57,10 +54,7 @@ class DBManager:
                     
                     """)
 
-                    for company in cur:
-                        data.append(company)
-
-                    return data
+                    return cur.fetchall()
 
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
@@ -79,7 +73,7 @@ class DBManager:
                 with conn.cursor() as cur:
 
                     data = []
-                    cur.execute(f"""SELECT salary_to, salary_from, salary_currency
+                    cur.execute(f"""SELECT salary_to, salary_from
                     FROM {self.tb_vacancies}
                     WHERE salary_currency =  '{salary_currency}'
                     """)
@@ -135,7 +129,7 @@ class DBManager:
         try:
             with psycopg2.connect(**self._params) as conn:
                 with conn.cursor() as cur:
-                    data = []
+
                     cur.execute(f"""SELECT name, {self.tb_vacancies}.url, {self.tb_employers}.company_name
                     FROM {self.tb_vacancies}
                     JOIN {self.tb_employers} USING(employer_id)
@@ -144,10 +138,7 @@ class DBManager:
                     OR LOWER(name) LIKE '{keyword}%'
                     """)
 
-                    for vacancy in cur:
-                        data.append(vacancy)
-
-                    return data
+                    return cur.fetchall()
 
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
