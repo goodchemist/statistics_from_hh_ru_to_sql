@@ -10,8 +10,8 @@ class PostgresDB:
         :param db_name: имя базы данных
         """
         self.db_name = db_name
-        self.params = params
-        self.params.update({'dbname': self.db_name})
+        self._params = params
+        self._params.update({'dbname': self.db_name})
 
     def create_table_employer(self, table_name) -> None:
         """
@@ -20,7 +20,7 @@ class PostgresDB:
         :return: None
         """
         try:
-            with psycopg2.connect(**self.params) as conn:
+            with psycopg2.connect(**self._params) as conn:
                 with conn.cursor() as cur:
                     cur.execute(f"""CREATE TABLE IF NOT EXISTS {table_name} (
                         employer_id SERIAL PRIMARY KEY,
@@ -45,7 +45,7 @@ class PostgresDB:
         :return: None
         """
         try:
-            with psycopg2.connect(**self.params) as conn:
+            with psycopg2.connect(**self._params) as conn:
                 with conn.cursor() as cur:
                     cur.execute(f"""CREATE TABLE IF NOT EXISTS {table_name} (
                         vacancy_id SERIAL PRIMARY KEY,
@@ -78,7 +78,7 @@ class PostgresDB:
         :return: None
         """
         try:
-            with psycopg2.connect(**self.params) as conn:
+            with psycopg2.connect(**self._params) as conn:
                 with conn.cursor() as cur:
                     cur.execute(
                         f"""
@@ -90,7 +90,7 @@ class PostgresDB:
                     )
 
                     employer_id = cur.fetchone()[0]
-                    print(employer_id)
+
                     for vacancy in vacancies:
                         cur.execute(
                             f"""
@@ -109,3 +109,9 @@ class PostgresDB:
         finally:
             if conn is not None:
                 conn.close()
+
+    def __repr__(self):
+        """Метод для отображения экземпляра класса PostgresDB.
+        :return: f-строка с данными.
+        """
+        return f"PostgresDB(db_name={self.db_name})"

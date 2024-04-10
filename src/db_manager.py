@@ -14,8 +14,8 @@ class DBManager:
         self.db_name = db_name
         self.tb_employers = tb_employers
         self.tb_vacancies = tb_vacancies
-        self.params = params
-        self.params.update({'dbname': self.db_name})
+        self._params = params
+        self._params.update({'dbname': self.db_name})
 
     def get_companies_and_vacancies_count(self) -> list:
         """
@@ -23,7 +23,7 @@ class DBManager:
         :return: list
         """
         try:
-            with psycopg2.connect(**self.params) as conn:
+            with psycopg2.connect(**self._params) as conn:
                 with conn.cursor() as cur:
                     data = []
                     cur.execute(f"""SELECT company_name, vacancies 
@@ -47,7 +47,7 @@ class DBManager:
         :return: list
         """
         try:
-            with psycopg2.connect(**self.params) as conn:
+            with psycopg2.connect(**self._params) as conn:
                 with conn.cursor() as cur:
                     data = []
                     cur.execute(f"""SELECT name, {self.tb_vacancies}.url, {self.tb_employers}.company_name,
@@ -75,7 +75,7 @@ class DBManager:
         :return: число
         """
         try:
-            with psycopg2.connect(**self.params) as conn:
+            with psycopg2.connect(**self._params) as conn:
                 with conn.cursor() as cur:
 
                     data = []
@@ -133,7 +133,7 @@ class DBManager:
         keyword = keyword.lower()
 
         try:
-            with psycopg2.connect(**self.params) as conn:
+            with psycopg2.connect(**self._params) as conn:
                 with conn.cursor() as cur:
                     data = []
                     cur.execute(f"""SELECT name, {self.tb_vacancies}.url, {self.tb_employers}.company_name
@@ -155,3 +155,9 @@ class DBManager:
         finally:
             if conn is not None:
                 conn.close()
+
+    def __repr__(self):
+        """Метод для отображения экземпляра класса DBManager.
+        :return: f-строка с данными.
+        """
+        return f"DBManager(db_name={self.db_name}, tb_employers={self.tb_employers}, tb_vacancies={self.tb_vacancies})"
