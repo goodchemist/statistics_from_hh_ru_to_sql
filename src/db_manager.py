@@ -130,7 +130,8 @@ class DBManager:
             with psycopg2.connect(**self._params) as conn:
                 with conn.cursor() as cur:
 
-                    cur.execute(f"""SELECT name, {self.tb_vacancies}.url, {self.tb_employers}.company_name
+                    cur.execute(f"""SELECT name, {self.tb_vacancies}.url, {self.tb_employers}.company_name,
+                    salary_to, salary_from, salary_currency
                     FROM {self.tb_vacancies}
                     JOIN {self.tb_employers} USING(employer_id)
                     WHERE LOWER(name) LIKE '%{keyword}' 
